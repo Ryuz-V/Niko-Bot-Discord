@@ -22,15 +22,27 @@ client.commands = new Collection();
 
 // LOAD COMMANDS
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
 
-for (const file of commandFiles) {
-  const command = require(path.join(commandsPath, file));
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
-    console.log(`Command loaded: ${command.data.name}`);
+function loadCommands(dir) {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      loadCommands(fullPath);
+    } else if (file.endsWith(".js")) {
+      const command = require(fullPath);
+      if (command.data && command.execute) {
+        client.commands.set(command.data.name, command);
+        console.log(`Command loaded: ${command.data.name}`);
+      }
+    }
   }
 }
+
+loadCommands(commandsPath);
 
 // LOAD EVENTS
 const eventsPath = path.join(__dirname, 'events');

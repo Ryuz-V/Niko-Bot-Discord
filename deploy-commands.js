@@ -6,7 +6,7 @@ const path = require('path');
 
 const token = process.env.BOT_TOKEN;
 const clientId = process.env.CLIENT_ID;
-const guildId = process.env.GUILD_ID; // kalau kosong, daftarkan global (butuh waktu)
+const guildId = process.env.GUILD_ID;
 
 if (!token || !clientId) {
   console.error('Set BOT_TOKEN dan CLIENT_ID di .env dulu.');
@@ -14,28 +14,48 @@ if (!token || !clientId) {
 }
 
 const commands = [];
-const commandsPath = path.join(__dirname, 'commands');
-if (fs.existsSync(commandsPath)) {
-  const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
-  for (const file of commandFiles) {
-    const command = require(path.join(commandsPath, file));
-    if (command.data && command.execute) commands.push(command.data.toJSON());
+
+// ========== FIX PENTING ==========
+// fungsi untuk membaca semua subfolder commands
+function loadCommands(dir) {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      loadCommands(filePath); // rekursif, baca semua subfolder
+    } else if (file.endsWith('.js')) {
+      const command = require(filePath);
+      if (command.data && command.execute) {
+        commands.push(command.data.toJSON());
+      }
+    }
   }
-} else {
-  console.log('Folder commands/ tidak ditemukan — buat beberapa file command dulu.');
 }
+// =================================
+
+loadCommands(path.join(__dirname, 'commands'));
 
 const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
   try {
     console.log(`Deploying ${commands.length} commands...`);
+
     if (guildId) {
-      await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
-      console.log('Commands registered to guild (fast).');
+      await rest.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: commands }
+      );
+      console.log('Commands registered FAST (guild).');
     } else {
-      await rest.put(Routes.applicationCommands(clientId), { body: commands });
-      console.log('Commands registered globally (may take ~1 hour).');
+      await rest.put(
+        Routes.applicationCommands(clientId),
+        { body: commands }
+      );
+      console.log('Commands registered globally (slow).');
     }
   } catch (err) {
     console.error(err);
