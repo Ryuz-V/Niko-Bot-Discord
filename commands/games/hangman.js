@@ -9,29 +9,28 @@ const categories = {
     hewan: ["kucing", "anjing", "burung", "sapi", "gajah"]
 };
 
-// Game storage
 const games = new Map();
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('hangman')
-        .setDescription('Mulai game Hangman dengan kategori!')
+        .setDescription('Start the Hangman game!')
         .addStringOption(opt =>
-            opt.setName('kategori')
-                .setDescription('Pilih kategori kata')
+            opt.setName('category')
+                .setDescription('Pick a category game!')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'Benda', value: 'benda' },
-                    { name: 'Negara', value: 'negara' },
-                    { name: 'Nama karakter film', value: 'nama karakter film' },
-                    { name: 'Nama games', value: 'nama games' },
-                    { name: 'Nama karakter Umamusume', value: 'nama karakter umamusume' },
-                    { name: 'Hewan', value: 'hewan' }
+                    { name: 'Object', value: 'benda' },
+                    { name: 'Country', value: 'negara' },
+                    { name: 'Movie character name', value: 'nama karakter film' },
+                    { name: 'Games Name', value: 'nama games' },
+                    { name: 'Umamusume character name', value: 'nama karakter umamusume' },
+                    { name: 'Animal', value: 'hewan' }
                 )
         ),
 
     async execute(interaction) {
-        const kategori = interaction.options.getString('kategori');
+        const kategori = interaction.options.getString('category');
 
         if (games.has(interaction.channelId)) {
             return interaction.reply("❗ Masih ada game berjalan di channel ini!");
@@ -51,10 +50,10 @@ module.exports = {
         });
 
         await interaction.reply(
-            `🎮 **HANGMAN DIMULAI!**\nKategori: **${kategori}**\n` +
-            `Tebak huruf dengan **/guess \<huruf\>**\n\n` +
-            `Kata: \`${display.join(" ")}\`\n` +
-            `Sisa nyawa: **6** ❤️`
+            `**Hangman Begins!**\nKategori: **${kategori}**\n` +
+            `Guess the letter using **/guess \<huruf\>**\n\n` +
+            `Word: \`${display.join(" ")}\`\n` +
+            `Remaining Life: **6** ❤️`
         );
     }
 };
